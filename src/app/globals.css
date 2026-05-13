@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 2 6 23;       /* slate-950 */
+    --foreground: 203 213 225;  /* slate-300 */
+    --muted: 15 23 42;          /* slate-900 */
+    --muted-foreground: 100 116 139;
+    --border: 30 41 59;         /* slate-800 */
+    --accent: 30 41 59;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-300 antialiased;
+  }
+
+  /* 统一滚动条风格 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-950;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-800 rounded;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-700;
+  }
+}
+
+/* 选中文本 */
+::selection {
+  @apply bg-emerald-900 text-emerald-200;
+}

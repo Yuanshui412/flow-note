@@ -1,0 +1,36 @@
+# deps
+node_modules/
+.pnp
+.pnp.js
+
+# build
+.next/
+out/
+build/
+dist/
+
+# env
+.env
+.env.local
+.env.production
+.env.development.local
+.env.test.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Prisma
+prisma/migrations/
+
+# SQLite
+*.db
+
+# Docker
+docker-compose.override.yml

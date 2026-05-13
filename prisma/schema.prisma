@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════
+// FlowNote — 带财务神经的 AI 知识库
+// ═══════════════════════════════════════════
+
+// ─── 用户 ───
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  avatarUrl    String?
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  memberships  WorkspaceMember[]
+  notes        Note[]
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+// ─── 工作区（多租户隔离单元）───
+
+model Workspace {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String   @unique
+  inviteCode String?  @unique @map("invite_code")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  members      WorkspaceMember[]
+  notes        Note[]
+  categories   TransactionCategory[]
+  transactions Transaction[]
+  budgets      Budget[]
+  tags         Tag[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+  workspaceId String   @map("workspace_id")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  role        String   @default("MEMBER")
+  joinedAt    DateTime    @default(now()) @map("joined_at")
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+  @@map("workspace_members")
+}
+
+// ─── 笔记（块结构 + 软删除 + 版本快照）───
+
+model Note {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  authorId    String    @map("author_id")
+  author      User      @relation(fields: [authorId], references: [id])
+  title       String
+  content     String    @default("[]")  // JSON Block 数组（SQLite 存为文本）
+  version     Int       @default(1)     // 乐观锁版本号
+  isPinned    Boolean   @default(false) @map("is_pinned")
+  isArchived  Boolean   @default(false) @map("is_archived")
+  deletedAt   DateTime? @map("deleted_at") // 软删除标记
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  snapshots    NoteSnapshot[]
+  transactions Transaction[]
+  tags         NoteTag[]
+
+  @@index([workspaceId, deletedAt])
+  @@index([workspaceId, updatedAt])
+  @@map("notes")
+}
+
+// ─── 版本快照 ───
+
+model NoteSnapshot {
+  id        String   @id @default(cuid())
+  noteId    String   @map("note_id")
+  note      Note     @relation(fields: [noteId], references: [id])
+  title     String
+  content   String   @default("[]") // JSON 快照（SQLite 存为文本）
+  version   Int      // 递增版本号
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([noteId, version])
+  @@map("note_snapshots")
+}
+
+// ─── 财务分类 ───
+
+model TransactionCategory {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String    // "餐饮", "交通", "办公用品" ...
+  icon        String    @default("💰")
+  type        String    // "INCOME" | "EXPENSE"
+  color       String?   // hex color
+  sortOrder   Int       @default(0) @map("sort_order")
+  isSystem    Boolean   @default(false) @map("is_system") // 预置分类不可删除
+
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([workspaceId, name])
+  @@map("transaction_categories")
+}
+
+// ─── 财务账单（结构化，关联笔记上下文）───
+
+model Transaction {
+  id          String              @id @default(cuid())
+  workspaceId String              @map("workspace_id")
+  workspace   Workspace           @relation(fields: [workspaceId], references: [id])
+  amount      Float
+  type        String              // "INCOME" | "EXPENSE"
+  categoryId  String              @map("category_id")
+  category    TransactionCategory @relation(fields: [categoryId], references: [id])
+  date        DateTime            // 消费/收入发生日期
+  description String?             // 自然语言原文（"和客户吃饭花了800"）
+  noteId      String?             @map("note_id")
+  note        Note?               @relation(fields: [noteId], references: [id])
+  blockId     String?             @map("block_id") // JSON 中对应 Block.id
+  createdById String              @map("created_by_id")
+  createdBy   User                @relation(fields: [createdById], references: [id])
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@index([workspaceId, date])
+  @@index([workspaceId, categoryId])
+  @@index([noteId])
+  @@map("transactions")
+}
+
+// ─── 预算 ───
+
+model Budget {
+  id          String              @id @default(cuid())
+  workspaceId String              @map("workspace_id")
+  workspace   Workspace           @relation(fields: [workspaceId], references: [id])
+  categoryId  String              @map("category_id")
+  category    TransactionCategory @relation(fields: [categoryId], references: [id])
+  amount      Float
+  periodStart DateTime            @map("period_start") // 预算周期起点
+  periodEnd   DateTime            @map("period_end")   // 预算周期终点
+  note        String?
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  @@index([workspaceId, periodStart, periodEnd])
+  @@map("budgets")
+}
+
+// ─── 标签 ───
+
+model Tag {
+  id          String   @id @default(cuid())
+  workspaceId String   @map("workspace_id")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  name        String
+  color       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  notes NoteTag[]
+
+  @@unique([workspaceId, name])
+  @@map("tags")
+}
+
+model NoteTag {
+  noteId String
+  note   Note @relation(fields: [noteId], references: [id])
+  tagId  String
+  tag    Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([noteId, tagId])
+  @@map("note_tags")
+}
+
+// ─── 审计日志 ───
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  workspaceId String   @map("workspace_id")
+  action      String   // "note.create" | "note.delete" | "note.restore" | "transaction.create" | ...
+  targetType  String   @map("target_type") // "note" | "transaction" | "budget"
+  targetId    String   @map("target_id")
+  actorId     String   @map("actor_id")
+  metadata    String?  // JSON 额外上下文（SQLite 存为文本）
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([workspaceId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
+// ─── 幂等性记录（财务入账防重）───
+
+model IdempotencyRecord {
+  key        String   @id
+  response   String   // JSON 响应（SQLite 存为文本）
+  statusCode Int      @map("status_code")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("idempotency_records")
+}

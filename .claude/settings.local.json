@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/register -H 'Content-Type: application/json' -d '{\"email\": \"test@flownote.ai\", \"name\": \"测试用户\", \"password\": \"123456\"}')",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/callback/credentials -H 'Content-Type: application/x-www-form-urlencoded' -d 'email=test@flownote.ai&password=123456&csrf=true' -c -)",
+      "Bash(powershell -Command \"gh auth status\")",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(ls -la \"src/app/notes/[id/]/\")",
+      "Bash(git rm *)"
+    ]
+  }
+}
