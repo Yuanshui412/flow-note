@@ -10,16 +10,11 @@ export default async function FinancePage() {
 
   if (!session?.userId) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Wallet className="w-8 h-8 text-slate-700 mx-auto" />
-          <p className="text-sm text-slate-500">请先登录以查看财务</p>
-          <Link
-            href="/login"
-            className="inline-block px-6 py-2 bg-emerald-600 text-sm text-white hover:bg-emerald-500 transition-colors"
-          >
-            登录
-          </Link>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f6f5f4" }}>
+        <div style={{ textAlign: "center" }}>
+          <Wallet size={32} style={{ color: "#a39e98", marginBottom: 16 }} />
+          <p style={{ fontSize: 16, color: "#615d59", marginBottom: 20 }}>请先登录以查看财务</p>
+          <Link href="/login" className="notion-btn-primary" style={{ textDecoration: "none" }}>登录</Link>
         </div>
       </div>
     );
@@ -32,8 +27,8 @@ export default async function FinancePage() {
 
   if (!membership) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <p className="text-sm text-slate-500">你还没有加入任何工作区</p>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f6f5f4" }}>
+        <p style={{ fontSize: 16, color: "#615d59" }}>你还没有加入任何工作区</p>
       </div>
     );
   }

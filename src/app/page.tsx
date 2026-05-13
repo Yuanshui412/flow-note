@@ -1,127 +1,128 @@
 import Link from "next/link";
-import { FileText, Wallet, BarChart3, Hash, Terminal, ArrowRight } from "lucide-react";
+import { FileText, Wallet, BarChart3, ArrowRight } from "lucide-react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
+import { prisma } from "@/lib/db/prisma";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getServerSession(authOptions);
+
+  // 获取真实统计数据（已登录用户）
+  let noteCount = 0;
+  let expenseTotal = 0;
+  let budgetRemaining = 0;
+  let aiParseCount = 0;
+
+  if (session?.userId) {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // 用户所有 workspace
+    const memberships = await prisma.workspaceMember.findMany({
+      where: { userId: session.userId },
+      select: { workspaceId: true },
+    });
+    const wsIds = memberships.map((m) => m.workspaceId);
+
+    // 本月笔记数
+    noteCount = await prisma.note.count({
+      where: { workspaceId: { in: wsIds }, deletedAt: null, createdAt: { gte: monthStart } },
+    });
+
+    // 本月支出
+    const txns = await prisma.transaction.findMany({
+      where: { workspaceId: { in: wsIds }, type: "EXPENSE", date: { gte: monthStart } },
+      select: { amount: true },
+    });
+    expenseTotal = txns.reduce((sum, t) => sum + Number(t.amount), 0);
+
+    // 本月预算剩余
+    const budgets = await prisma.budget.findMany({
+      where: { workspaceId: { in: wsIds }, periodStart: { lte: now }, periodEnd: { gte: now } },
+      select: { amount: true },
+    });
+    const totalBudget = budgets.reduce((sum, b) => sum + Number(b.amount), 0);
+    budgetRemaining = totalBudget - expenseTotal;
+
+    // AI 解析次数（通过审计日志统计 AI 工具创建的 transaction）
+    aiParseCount = await prisma.auditLog.count({
+      where: { workspaceId: { in: wsIds }, action: "transaction.create", createdAt: { gte: monthStart } },
+    });
+  }
+
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-300 font-mono">
-      {/* Main Content */}
-      <div className="mx-auto max-w-4xl px-6 pt-20 pb-24">
-        {/* Brand Line */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-4">
-            <Terminal className="w-6 h-6 text-slate-400" />
-            <span className="text-xs text-slate-600 tracking-[0.2em] uppercase">
-              AI-Powered Knowledge Base
-            </span>
+    <>
+      {/* Hero */}
+      <section style={{ background: "var(--bg-warm)", padding: "100px 24px 80px", textAlign: "center" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <div className="notion-badge" style={{ marginBottom: 24, background: "#e8f4fd", color: "#0075de" }}>
+            AI-Powered Knowledge Base
           </div>
-          <h1 className="text-5xl font-bold text-slate-100 tracking-tight">
-            Flow<span className="text-emerald-400">Note</span>
+          <h1 style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.0, letterSpacing: "-2.125px", color: "rgba(0,0,0,0.95)", margin: "0 0 24px" }}>
+            Flow<span style={{ color: "#0075de" }}>Note</span>
           </h1>
-          <p className="mt-4 text-sm text-slate-500 max-w-lg leading-relaxed">
-            以笔记为主轴，财务记账为内嵌模块的 AI 知识库。
-            写笔记时自然语言入账，月底自动生成工作+财务复盘报告。
+          <p style={{ fontSize: 20, lineHeight: 1.5, color: "#615d59", maxWidth: 540, margin: "0 auto 40px" }}>
+            以笔记为主轴，财务记账为内嵌模块的 AI 知识库。写笔记时自然语言入账，月底自动生成工作+财务复盘报告。
           </p>
-
-          {/* CTA */}
-          <div className="mt-8 flex items-center gap-4">
-            <Link
-              href="/notes"
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-sm text-white
-                         hover:bg-emerald-500 transition-colors"
-            >
-              开始使用
-              <ArrowRight className="w-4 h-4" />
+          <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+            <Link href="/notes" className="notion-btn-primary" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, fontSize: 15 }}>
+              开始使用 <ArrowRight size={16} />
             </Link>
-            <Link
-              href="/ai-chat"
-              className="flex items-center gap-2 px-6 py-2.5 border border-slate-700 text-sm
-                         text-slate-400 hover:text-slate-200 hover:border-slate-600 transition-colors"
-            >
+            <Link href="/ai-chat" className="notion-btn-secondary" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
               AI 对话
             </Link>
           </div>
         </div>
+      </section>
 
-        {/* Quick Actions */}
-        <div className="space-y-1">
-          <p className="text-xs text-slate-600 mb-3 uppercase tracking-widest">
-            Quick Actions
-          </p>
-
-          <Link
-            href="/notes"
-            className="flex items-center gap-4 px-4 py-3 border border-slate-800
-                       hover:border-slate-700 hover:bg-slate-900 group transition-colors"
-          >
-            <FileText className="w-5 h-5 text-slate-500 group-hover:text-slate-300 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-sm text-slate-300">笔记</span>
-              <span className="text-xs text-slate-600 ml-3">
-                块结构编辑 · Markdown · 版本历史
-              </span>
-            </div>
-            <span className="text-xs text-slate-700">⌘N</span>
-          </Link>
-
-          <Link
-            href="/finance"
-            className="flex items-center gap-4 px-4 py-3 border border-slate-800
-                       hover:border-slate-700 hover:bg-slate-900 group transition-colors"
-          >
-            <Wallet className="w-5 h-5 text-slate-500 group-hover:text-slate-300 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-sm text-slate-300">财务</span>
-              <span className="text-xs text-slate-600 ml-3">
-                自然语言入账 · 分类统计 · 预算追踪
-              </span>
-            </div>
-            <span className="text-xs text-slate-700">⌘F</span>
-          </Link>
-
-          <Link
-            href="/reports"
-            className="flex items-center gap-4 px-4 py-3 border border-slate-800
-                       hover:border-slate-700 hover:bg-slate-900 group transition-colors"
-          >
-            <BarChart3 className="w-5 h-5 text-slate-500 group-hover:text-slate-300 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <span className="text-sm text-slate-300">复盘报告</span>
-              <span className="text-xs text-slate-600 ml-3">
-                AI 生成 · 工作+财务 · 月度总结
-              </span>
-            </div>
-            <span className="text-xs text-slate-700">⌘R</span>
-          </Link>
-        </div>
-
-        {/* Stats Row */}
-        <div className="mt-16 grid grid-cols-4 gap-px bg-slate-800">
+      {/* Features */}
+      <section style={{ padding: "80px 24px", maxWidth: 1200, margin: "0 auto" }}>
+        <h2 style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.23, letterSpacing: "-0.625px", color: "rgba(0,0,0,0.95)", marginBottom: 40 }}>
+          一切从笔记开始
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
           {[
-            { label: "本月笔记", value: "23", unit: "篇", icon: FileText },
-            { label: "本月支出", value: "3,845", unit: "¥", icon: Wallet },
-            { label: "预算剩余", value: "1,155", unit: "¥", icon: BarChart3 },
-            { label: "AI 解析", value: "47", unit: "次", icon: Hash },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-slate-950 px-4 py-3">
-              <div className="flex items-center gap-2 mb-2">
-                <stat.icon className="w-3.5 h-3.5 text-slate-600" />
-                <span className="text-xs text-slate-500">{stat.label}</span>
+            { icon: FileText, title: "块结构笔记", desc: "自由输入 Markdown，自动解析为结构化 Block。支持标题、列表、引用、代码块。" },
+            { icon: Wallet, title: "自然语言记账", desc: "在笔记中写「和客户吃饭花了800」，AI 自动提取金额、分类，关联上下文。" },
+            { icon: BarChart3, title: "AI 复盘报告", desc: "每月自动汇总笔记和财务数据，生成工作+财务分析报告。" },
+          ].map((f) => (
+            <div key={f.title} className="notion-card" style={{ padding: 32 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: "#f2f9ff", color: "#0075de", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                <f.icon size={20} />
               </div>
-              <div className="text-xl font-bold text-slate-200 tabular-nums">
+              <h3 style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.27, letterSpacing: "-0.25px", color: "rgba(0,0,0,0.95)", marginBottom: 8 }}>
+                {f.title}
+              </h3>
+              <p style={{ fontSize: 16, lineHeight: 1.5, color: "#615d59", margin: 0 }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats — real data */}
+      <section className="notion-section-warm" style={{ padding: "64px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 1 }}>
+          {[
+            { label: "本月笔记", value: noteCount.toLocaleString(), unit: "篇" },
+            { label: "本月支出", value: `¥${expenseTotal.toLocaleString()}`, unit: "" },
+            { label: "预算剩余", value: `¥${budgetRemaining.toLocaleString()}`, unit: "" },
+            { label: "AI 解析", value: aiParseCount.toLocaleString(), unit: "次" },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: "#fff", padding: "24px 28px" }}>
+              <div style={{ fontSize: 14, fontWeight: 500, color: "#615d59", marginBottom: 8 }}>{stat.label}</div>
+              <div style={{ fontSize: 32, fontWeight: 700, color: "rgba(0,0,0,0.95)", lineHeight: 1 }}>
                 {stat.value}
-                <span className="text-xs text-slate-600 ml-1 font-normal">
-                  {stat.unit}
-                </span>
+                {stat.unit && <span style={{ fontSize: 14, fontWeight: 400, color: "#a39e98", marginLeft: 4 }}>{stat.unit}</span>}
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-700">
+      <footer style={{ borderTop: "1px solid rgba(0,0,0,0.1)", padding: "24px", textAlign: "center", fontSize: 14, color: "#a39e98" }}>
         FlowNote · AI-Powered Knowledge Base with Financial Nerve
-      </div>
-    </main>
+      </footer>
+    </>
   );
 }

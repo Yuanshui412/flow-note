@@ -11,7 +11,17 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(ls -la \"src/app/notes/[id/]/\")",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo create flow-note --public --source=. --push --description \"AI-powered knowledge base with financial nerve. 14-day fullstack bootcamp project.\")",
+      "Bash(git checkout *)",
+      "Bash(git push *)",
+      "WebFetch(domain:github.com)",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" api repos/nexu-io/open-design/readme)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/nexu-io/open-design/main/README.md\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/nexu-io/open-design/main/QUICKSTART.md\")",
+      "Read(//e//**)",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo clone nexu-io/open-design)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

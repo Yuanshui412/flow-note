@@ -2,37 +2,160 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════
+   FlowNote — Notion Design System
+   Warm neutral scale. Whisper borders. Multi-layer shadows.
+   ═══════════════════════════════════════════ */
+
 @layer base {
   :root {
-    --background: 2 6 23;       /* slate-950 */
-    --foreground: 203 213 225;  /* slate-300 */
-    --muted: 15 23 42;          /* slate-900 */
-    --muted-foreground: 100 116 139;
-    --border: 30 41 59;         /* slate-800 */
-    --accent: 30 41 59;
+    /* ─── Notion Color Tokens ─── */
+    --bg-white: #ffffff;
+    --bg-warm: #f6f5f4;
+    --bg-warm-dark: #31302e;
+    --text-primary: rgba(0, 0, 0, 0.95);
+    --text-secondary: #615d59;
+    --text-tertiary: #a39e98;
+    --border-whisper: rgba(0, 0, 0, 0.1);
+    --border-input: #dddddd;
+    --accent-blue: #0075de;
+    --accent-blue-hover: #005bab;
+    --accent-blue-light: #f2f9ff;
+    --accent-teal: #2a9d99;
+    --accent-green: #1aae39;
+    --accent-orange: #dd5b00;
+    --accent-pink: #ff64c8;
+
+    /* ─── Shadows (Notion multi-layer) ─── */
+    --shadow-card: 0px 4px 18px rgba(0,0,0,0.04),
+                   0px 2.025px 7.84688px rgba(0,0,0,0.027),
+                   0px 0.8px 2.925px rgba(0,0,0,0.02),
+                   0px 0.175px 1.04062px rgba(0,0,0,0.01);
+    --shadow-deep: 0px 1px 3px rgba(0,0,0,0.01),
+                   0px 3px 7px rgba(0,0,0,0.02),
+                   0px 7px 15px rgba(0,0,0,0.02),
+                   0px 14px 28px rgba(0,0,0,0.04),
+                   0px 23px 52px rgba(0,0,0,0.05);
+
+    /* ─── Typography Scale ─── */
+    --font-display: 700 64px/1.0 Inter, -apple-system, system-ui, sans-serif;
+    --font-section: 700 48px/1.0 Inter, -apple-system, system-ui, sans-serif;
+    --font-subhead: 700 26px/1.23 Inter, -apple-system, system-ui, sans-serif;
+    --font-card-title: 700 22px/1.27 Inter, -apple-system, system-ui, sans-serif;
+    --font-body: 400 16px/1.5 Inter, -apple-system, system-ui, sans-serif;
+    --font-nav: 600 15px/1.33 Inter, -apple-system, system-ui, sans-serif;
+    --font-caption: 500 14px/1.43 Inter, -apple-system, system-ui, sans-serif;
+    --font-badge: 600 12px/1.33 Inter, -apple-system, system-ui, sans-serif;
   }
 
   body {
-    @apply bg-slate-950 text-slate-300 antialiased;
+    background: var(--bg-white);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: Inter, -apple-system, system-ui, 'Segoe UI', Helvetica, sans-serif;
   }
 
-  /* 统一滚动条风格 */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* ─── Scrollbar (whisper) ─── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+
+  /* ─── Selection ─── */
+  ::selection { background: #d2e7fc; color: var(--text-primary); }
+}
+
+/* ─── Notion-style utility classes ─── */
+
+@layer components {
+  /* Card with whisper border + multi-layer shadow */
+  .notion-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-whisper);
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
   }
-  ::-webkit-scrollbar-track {
-    @apply bg-slate-950;
+
+  /* Section background alternation */
+  .notion-section-warm {
+    background: var(--bg-warm);
   }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-800 rounded;
+
+  /* Primary CTA button */
+  .notion-btn-primary {
+    background: var(--accent-blue);
+    color: #ffffff;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font: var(--font-nav);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-700;
+  .notion-btn-primary:hover { background: var(--accent-blue-hover); }
+  .notion-btn-primary:active { transform: scale(0.9); }
+
+  /* Secondary button */
+  .notion-btn-secondary {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font: var(--font-nav);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .notion-btn-secondary:hover { background: rgba(0,0,0,0.08); }
+
+  /* Ghost link */
+  .notion-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+  .notion-link:hover { background: rgba(0,0,0,0.05); }
+
+  /* Input field */
+  .notion-input {
+    background: var(--bg-white);
+    color: rgba(0,0,0,0.9);
+    border: 1px solid var(--border-input);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font: var(--font-body);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .notion-input:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(0,117,222,0.2);
+  }
+  .notion-input::placeholder { color: var(--text-tertiary); }
+
+  /* Badge pill */
+  .notion-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font: var(--font-badge);
+    letter-spacing: 0.125px;
+    background: var(--accent-blue-light);
+    color: #097fe8;
   }
 }
 
-/* 选中文本 */
-::selection {
-  @apply bg-emerald-900 text-emerald-200;
+/* ─── 3D Perspective (for DossierStack) ─── */
+
+@layer utilities {
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
+
+/* DossierStack card hover → show delete */
+.notion-card:hover .dossier-delete-btn {
+  display: flex !important;
 }

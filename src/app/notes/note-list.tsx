@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, FileText, Wallet, Hash, Plus, Trash2 } from "lucide-react";
+import { Search, Plus, Trash2, FileText } from "lucide-react";
 import type { Prisma } from "@prisma/client";
-
-// ─── 类型：Server Component 传下来的 note 结构 ───
 
 type NoteWithMeta = Prisma.NoteGetPayload<{
   include: {
@@ -20,8 +18,6 @@ interface Props {
   workspaceId: string;
 }
 
-// ─── Client Component ───
-
 export function NoteList({ notes, workspaceId }: Props) {
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
@@ -29,17 +25,12 @@ export function NoteList({ notes, workspaceId }: Props) {
   const [items, setItems] = useState(notes);
 
   async function handleDelete(noteId: string, e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     if (!confirm("确定删除这篇笔记？")) return;
-
     setDeletingId(noteId);
     const res = await fetch(`/api/notes/${noteId}`, { method: "DELETE" });
-    if (res.ok) {
-      setItems(items.filter((n) => n.id !== noteId));
-    } else {
-      alert("删除失败，请重试");
-    }
+    if (res.ok) setItems(items.filter((n) => n.id !== noteId));
+    else alert("删除失败");
     setDeletingId(null);
   }
 
@@ -52,9 +43,7 @@ export function NoteList({ notes, workspaceId }: Props) {
     });
     const data = await res.json();
     setCreating(false);
-    if (data.success) {
-      window.location.href = `/notes/${data.data.id}`;
-    }
+    if (data.success) window.location.href = `/notes/${data.data.id}`;
   }
 
   const filtered = q
@@ -63,75 +52,127 @@ export function NoteList({ notes, workspaceId }: Props) {
 
   return (
     <div>
-      {/* 搜索栏 */}
-      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
-        <Search className="w-4 h-4 text-slate-600 shrink-0" />
+      {/* Search bar */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          paddingBottom: 20,
+          marginBottom: 24,
+          borderBottom: "1px solid rgba(0,0,0,0.1)",
+        }}
+      >
+        <Search size={16} style={{ color: "#a39e98", flexShrink: 0 }} />
         <input
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="搜索笔记..."
-          className="flex-1 bg-transparent text-sm text-slate-300 placeholder-slate-600 outline-none"
+          style={{
+            flex: 1,
+            border: "none",
+            background: "transparent",
+            fontSize: 16,
+            color: "rgba(0,0,0,0.95)",
+            outline: "none",
+          }}
         />
-        <span className="text-xs text-slate-600 tabular-nums">
+        <span style={{ fontSize: 14, color: "#a39e98", fontVariantNumeric: "tabular-nums" }}>
           {filtered.length}/{items.length}
         </span>
         <button
           onClick={handleCreate}
           disabled={creating}
-          className="flex items-center gap-1 px-3 py-1 border border-emerald-900
-                     text-xs text-emerald-500 hover:bg-emerald-950/30
-                     disabled:opacity-50 transition-colors"
+          className="notion-btn-primary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14 }}
         >
-          <Plus className="w-3.5 h-3.5" />
-          新建
+          <Plus size={14} /> 新建
         </button>
       </div>
 
-      {/* 笔记列表 */}
+      {/* Note grid */}
       {filtered.length === 0 ? (
-        <p className="text-sm text-slate-600 py-8 text-center">无匹配结果</p>
+        <p style={{ textAlign: "center", padding: "64px 0", color: "#a39e98", fontSize: 14 }}>
+          暂无笔记，点击「新建」开始
+        </p>
       ) : (
-        <div className="space-y-px">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 16,
+          }}
+        >
           {filtered.map((note) => (
             <Link
               key={note.id}
               href={`/notes/${note.id}`}
-              className="flex items-center gap-4 px-3 py-3 border border-slate-800 hover:border-slate-700 hover:bg-slate-900 group transition-colors"
+              className="notion-card group"
+              style={{
+                padding: "20px 24px",
+                textDecoration: "none",
+                display: "block",
+                position: "relative",
+                transition: "box-shadow 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0px 1px 3px rgba(0,0,0,0.01), 0px 3px 7px rgba(0,0,0,0.02), 0px 7px 15px rgba(0,0,0,0.02), 0px 14px 28px rgba(0,0,0,0.04), 0px 23px 52px rgba(0,0,0,0.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "";
+              }}
             >
-              {/* 图标 */}
-              <FileText className="w-4 h-4 text-slate-600 group-hover:text-slate-400 shrink-0" />
-
-              {/* 主信息 */}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-300 truncate">{note.title}</div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-slate-600">
-                  <span>{note.author.name}</span>
-                  <span>{new Date(note.updatedAt).toLocaleDateString("zh-CN")}</span>
-                  {note.tags.map((t) => (
-                    <span key={t.tag.name} style={{ color: t.tag.color ?? undefined }}>
-                      #{t.tag.name}
-                    </span>
-                  ))}
-                </div>
+              {/* Title */}
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: "rgba(0,0,0,0.95)",
+                  marginBottom: 12,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                <FileText size={16} style={{ marginRight: 8, color: "#a39e98", verticalAlign: "middle" }} />
+                {note.title}
               </div>
 
-              {/* 财务关联数 */}
-              {note._count.transactions > 0 && (
-                <div className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
-                  <Wallet className="w-3 h-3" />
-                  <span className="tabular-nums">{note._count.transactions}</span>
-                </div>
-              )}
+              {/* Meta */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "#615d59" }}>
+                <span>{note.author.name}</span>
+                <span>·</span>
+                <span>{new Date(note.updatedAt).toLocaleDateString("zh-CN")}</span>
+                {note.tags.map((t) => (
+                  <span key={t.tag.name} className="notion-badge">
+                    {t.tag.name}
+                  </span>
+                ))}
+              </div>
 
-              {/* 删除按钮 */}
+              {/* Delete */}
               <button
                 onClick={(e) => handleDelete(note.id, e)}
                 disabled={deletingId === note.id}
-                className="p-1 opacity-0 group-hover:opacity-100 text-slate-700
-                           hover:text-red-500 disabled:opacity-50 shrink-0"
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  right: 12,
+                  padding: 4,
+                  border: "none",
+                  background: "transparent",
+                  color: "#a39e98",
+                  cursor: "pointer",
+                  opacity: 0,
+                  transition: "opacity 0.15s ease",
+                }}
+                className="group-hover:opacity-100"
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 size={14} />
               </button>
             </Link>
           ))}

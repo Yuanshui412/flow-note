@@ -3,15 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import {
-  Terminal,
-  FileText,
-  Wallet,
-  Sparkles,
-  LogOut,
-  LogIn,
-  UserPlus,
-} from "lucide-react";
+import { FileText, Wallet, Sparkles, LogOut, LogIn, UserPlus } from "lucide-react";
 
 const links = [
   { href: "/notes", label: "笔记", icon: FileText },
@@ -26,17 +18,23 @@ export function Nav() {
   if (pathname === "/login" || pathname === "/register") return null;
 
   return (
-    <header className="border-b border-slate-800 bg-slate-950">
-      <div className="mx-auto flex h-12 items-center justify-between px-6 max-w-6xl">
-        {/* Logo + 导航 */}
+    <header
+      className="fixed top-0 w-full"
+      style={{ zIndex: 1000, background: "#fff", borderBottom: "1px solid rgba(0,0,0,0.1)" }}
+    >
+      <div className="mx-auto flex h-12 items-center justify-between px-6 max-w-[1200px]">
+        {/* Logo */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Terminal className="w-4 h-4 text-emerald-500" />
-            <span className="text-sm font-bold text-slate-300 tracking-tight">
-              Flow<span className="text-emerald-400">Note</span>
+          <Link href="/" className="flex items-center gap-2 shrink-0 no-underline">
+            <span
+              className="text-[15px] font-semibold tracking-[-0.125px]"
+              style={{ color: "rgba(0,0,0,0.95)" }}
+            >
+              Flow<span style={{ color: "#0075de" }}>Note</span>
             </span>
           </Link>
 
+          {/* Nav links */}
           <nav className="flex items-center gap-1">
             {links.map(({ href, label, icon: Icon }) => {
               const active = pathname.startsWith(href);
@@ -44,14 +42,14 @@ export function Nav() {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors
-                    ${
-                      active
-                        ? "text-slate-200 bg-slate-800"
-                        : "text-slate-500 hover:text-slate-300 hover:bg-slate-900"
-                    }`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[5px] no-underline
+                             text-[15px] font-medium transition-colors"
+                  style={{
+                    color: active ? "rgba(0,0,0,0.95)" : "#615d59",
+                    background: active ? "rgba(0,0,0,0.05)" : "transparent",
+                  }}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon size={15} />
                   {label}
                 </Link>
               );
@@ -59,19 +57,24 @@ export function Nav() {
           </nav>
         </div>
 
-        {/* 用户区 */}
+        {/* User area */}
         <div className="flex items-center gap-3">
           {status === "loading" ? (
-            <span className="text-xs text-slate-700">...</span>
+            <span style={{ color: "#a39e98", fontSize: 14 }}>...</span>
           ) : session?.user ? (
             <>
-              <span className="text-xs text-slate-500">{session.user.email}</span>
+              <span style={{ color: "#615d59", fontSize: 14 }}>
+                {session.user.email}
+              </span>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex items-center gap-1 px-2 py-1 text-xs text-slate-600
-                           hover:text-slate-400 transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-[14px] font-medium
+                           rounded-[4px] transition-colors no-underline border-0 cursor-pointer"
+                style={{ color: "#615d59", background: "transparent" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.05)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                <LogOut className="w-3 h-3" />
+                <LogOut size={14} />
                 退出
               </button>
             </>
@@ -79,18 +82,20 @@ export function Nav() {
             <>
               <Link
                 href="/login"
-                className="flex items-center gap-1 px-2 py-1 text-xs text-slate-500
-                           hover:text-slate-300 transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-[14px] font-medium
+                           rounded-[4px] no-underline transition-colors"
+                style={{ color: "#615d59" }}
               >
-                <LogIn className="w-3 h-3" />
+                <LogIn size={14} />
                 登录
               </Link>
               <Link
                 href="/register"
-                className="flex items-center gap-1 px-2 py-1 text-xs text-slate-500
-                           hover:text-slate-300 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-[14px] font-semibold
+                           rounded-[4px] no-underline transition-colors"
+                style={{ background: "#0075de", color: "#fff" }}
               >
-                <UserPlus className="w-3 h-3" />
+                <UserPlus size={14} />
                 注册
               </Link>
             </>

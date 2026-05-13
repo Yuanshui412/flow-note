@@ -1,30 +1,25 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
-import { NoteList } from "./note-list";
+import { DossierStack } from "./dossier-stack";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 
 export default async function NotesPage() {
   const session = await getServerSession(authOptions);
+
   if (!session?.userId) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <FileText className="w-8 h-8 text-slate-700 mx-auto" />
-          <p className="text-sm text-slate-500">请先登录以查看笔记</p>
-          <Link
-            href="/login"
-            className="inline-block px-6 py-2 bg-emerald-600 text-sm text-white hover:bg-emerald-500 transition-colors"
-          >
-            登录
-          </Link>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f6f5f4" }}>
+        <div style={{ textAlign: "center" }}>
+          <FileText size={32} style={{ color: "#a39e98", marginBottom: 16 }} />
+          <p style={{ fontSize: 16, color: "#615d59", marginBottom: 20 }}>请先登录以查看笔记</p>
+          <Link href="/login" className="notion-btn-primary" style={{ textDecoration: "none" }}>登录</Link>
         </div>
       </div>
     );
   }
 
-  // 获取用户所有 workspace 的笔记
   const memberships = await prisma.workspaceMember.findMany({
     where: { userId: session.userId },
     select: { workspaceId: true },
@@ -33,10 +28,7 @@ export default async function NotesPage() {
   const workspaceIds = memberships.map((m) => m.workspaceId);
 
   const notes = await prisma.note.findMany({
-    where: {
-      workspaceId: { in: workspaceIds },
-      deletedAt: null,
-    },
+    where: { workspaceId: { in: workspaceIds }, deletedAt: null },
     orderBy: { updatedAt: "desc" },
     take: 50,
     include: {
@@ -46,11 +38,5 @@ export default async function NotesPage() {
     },
   });
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-300 font-mono">
-      <div className="mx-auto max-w-4xl px-6 py-12">
-        <NoteList notes={notes} workspaceId={workspaceIds[0] ?? ""} />
-      </div>
-    </div>
-  );
+  return <DossierStack notes={notes} workspaceId={workspaceIds[0] ?? ""} />;
 }

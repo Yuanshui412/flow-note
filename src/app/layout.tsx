@@ -17,11 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className="dark">
+    <html lang="zh-CN">
       <body className={inter.className}>
         <SessionProvider>
           <Nav />
-          {children}
+          <main style={{ minHeight: "100vh", paddingTop: 48 }}>{children}</main>
         </SessionProvider>
       </body>
     </html>
