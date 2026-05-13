@@ -16,7 +16,8 @@ const DEFAULT_CATEGORIES = [
   { name: "办公", icon: "💻", type: "EXPENSE", color: "#8b5cf6", sortOrder: 3, isSystem: true },
   { name: "差旅", icon: "✈️", type: "EXPENSE", color: "#06b6d4", sortOrder: 4, isSystem: true },
   { name: "购物", icon: "🛒", type: "EXPENSE", color: "#ec4899", sortOrder: 5, isSystem: true },
-  { name: "工资", icon: "💵", type: "INCOME", color: "#22c55e", sortOrder: 6, isSystem: true },
+  { name: "其他", icon: "📌", type: "EXPENSE", color: "#6b7280", sortOrder: 6, isSystem: true },
+  { name: "工资", icon: "💵", type: "INCOME", color: "#22c55e", sortOrder: 7, isSystem: true },
   { name: "其他收入", icon: "📦", type: "INCOME", color: "#a3e635", sortOrder: 7, isSystem: true },
 ];
 

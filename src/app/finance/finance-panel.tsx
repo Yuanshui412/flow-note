@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Wallet, Plus, ArrowUpRight, ArrowDownRight, TrendingUp, Hash } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Wallet, Plus, ArrowUpRight, ArrowDownRight, TrendingUp, Hash, Utensils, Car, ShoppingBag, Monitor, Briefcase, Plane, Gift, Home, Activity } from "lucide-react";
 
 type Stats = {
   income: number;
@@ -21,12 +21,22 @@ type Transaction = {
 
 interface Props { workspaceId: string; initialStats: Stats; initialTransactions: Transaction[]; }
 
+// 分类名 → Lucide 图标映射
+function getCategoryIcon(categoryName: string) {
+  const map: Record<string, typeof Utensils> = {
+    "餐饮": Utensils, "交通": Car, "购物": ShoppingBag, "办公": Monitor,
+    "差旅": Plane, "工资": Briefcase, "其他收入": Gift, "其他": Activity,
+  };
+  return map[categoryName] ?? Activity;
+}
+
 const QUICK_CATEGORIES = [
-  { name: "餐饮", icon: "🍜", type: "EXPENSE" },
-  { name: "交通", icon: "🚗", type: "EXPENSE" },
-  { name: "购物", icon: "🛒", type: "EXPENSE" },
-  { name: "办公", icon: "💻", type: "EXPENSE" },
-  { name: "工资", icon: "💵", type: "INCOME" },
+  { name: "餐饮", type: "EXPENSE" as const },
+  { name: "交通", type: "EXPENSE" as const },
+  { name: "购物", type: "EXPENSE" as const },
+  { name: "办公", type: "EXPENSE" as const },
+  { name: "其他", type: "EXPENSE" as const },
+  { name: "工资", type: "INCOME" as const },
 ];
 
 export function FinancePanel({ workspaceId, initialStats, initialTransactions }: Props) {
@@ -118,7 +128,9 @@ export function FinancePanel({ workspaceId, initialStats, initialTransactions }:
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {stats.byCategory.map((cat) => (
               <div key={cat.category} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 16, width: 24 }}>{cat.icon}</span>
+                <span style={{ width: 24, display: "flex", alignItems: "center", color: "#615d59" }}>
+                  {React.createElement(getCategoryIcon(cat.category), { size: 16 })}
+                </span>
                 <span style={{ fontSize: 14, color: "#615d59", width: 64, flexShrink: 0 }}>{cat.category}</span>
                 <div style={{ flex: 1, background: "#f6f5f4", borderRadius: 4, height: 8, overflow: "hidden" }}>
                   <div
@@ -153,13 +165,14 @@ export function FinancePanel({ workspaceId, initialStats, initialTransactions }:
                   key={cat.name} type="button"
                   onClick={() => { setCatName(cat.name); setCatType(cat.type); }}
                   style={{
-                    fontSize: 14, padding: "4px 10px", borderRadius: 9999, border: "none",
+                    fontSize: 14, padding: "6px 18px", borderRadius: 8, border: "none",
+                    display: "inline-flex", alignItems: "center", whiteSpace: "nowrap",
                     background: catName === cat.name ? "#f2f9ff" : "rgba(0,0,0,0.05)",
                     color: catName === cat.name ? "#097fe8" : "#615d59",
                     cursor: "pointer", fontWeight: catName === cat.name ? 600 : 500,
                   }}
                 >
-                  {cat.icon} {cat.name}
+                  {React.createElement(getCategoryIcon(cat.name), { size: 14, style: { marginRight: 4 } })} {cat.name}
                 </button>
               ))}
             </div>
@@ -198,7 +211,9 @@ export function FinancePanel({ workspaceId, initialStats, initialTransactions }:
               const amt = typeof txn.amount === "number" ? txn.amount : Number(txn.amount);
               return (
                 <div key={txn.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 20px", background: "#fff" }}>
-                  <span style={{ fontSize: 20 }}>{txn.category.icon}</span>
+                  <span style={{ display: "flex", alignItems: "center", color: "#615d59" }}>
+                    {React.createElement(getCategoryIcon(txn.category.name), { size: 18 })}
+                  </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 500, color: "rgba(0,0,0,0.95)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {txn.description || txn.category.name}

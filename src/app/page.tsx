@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Wallet, BarChart3, ArrowRight } from "lucide-react";
+import { NotebookPen, Banknote, LineChart, ArrowRight } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
@@ -82,9 +82,9 @@ export default async function HomePage() {
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
           {[
-            { icon: FileText, title: "块结构笔记", desc: "自由输入 Markdown，自动解析为结构化 Block。支持标题、列表、引用、代码块。" },
-            { icon: Wallet, title: "自然语言记账", desc: "在笔记中写「和客户吃饭花了800」，AI 自动提取金额、分类，关联上下文。" },
-            { icon: BarChart3, title: "AI 复盘报告", desc: "每月自动汇总笔记和财务数据，生成工作+财务分析报告。" },
+            { icon: NotebookPen, title: "块结构笔记", desc: "自由输入 Markdown，自动解析为结构化 Block。支持标题、列表、引用、代码块。" },
+            { icon: Banknote, title: "自然语言记账", desc: "在笔记中写「和客户吃饭花了800」，AI 自动提取金额、分类，关联上下文。" },
+            { icon: LineChart, title: "AI 复盘报告", desc: "每月自动汇总笔记和财务数据，生成工作+财务分析报告。" },
           ].map((f) => (
             <div key={f.title} className="notion-card" style={{ padding: 32 }}>
               <div style={{ width: 40, height: 40, borderRadius: 8, background: "#f2f9ff", color: "#0075de", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>

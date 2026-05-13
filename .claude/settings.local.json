@@ -21,7 +21,9 @@
       "Bash(curl -sL \"https://raw.githubusercontent.com/nexu-io/open-design/main/QUICKSTART.md\")",
       "Read(//e//**)",
       "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo clone nexu-io/open-design)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.iconfont.cn)",
+      "WebFetch(domain:lucide.dev)"
     ]
   }
 }
